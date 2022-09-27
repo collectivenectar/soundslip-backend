@@ -3,10 +3,6 @@
   "version": "1.0.0",
   "description": "An audio sample sharing app",
   "main": "server.js",
-  "engines": {
-    "start": "node server.js",
-    "node": "16.x"
-  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "node server.js",
@@ -14,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/collectivenectar/soundslip-backend.git"
+    "url": "git+https://github.com/collectivenectar/soundslip.git"
   },
   "keywords": [
     "audio",
@@ -23,9 +19,9 @@
   "author": "Jonathan Harvey",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/collectivenectar/soundslip-backend/issues"
+    "url": "https://github.com/collectivenectar/soundslip/issues"
   },
-  "homepage": "https://github.com/collectivenectar/soundslip-backend#readme",
+  "homepage": "https://github.com/collectivenectar/soundslip#readme",
   "dependencies": {
     "aws-sdk": "^2.1199.0",
     "cors": "^2.8.5",
