@@ -16,15 +16,18 @@ module.exports = {
   // All public soundslips in the db, pass in search params like instrument/genre/date/etc
   getPubSoundslips: async (request, response) => {
     try{
-      // bring in params here to structure the options and pass into Soundslip.find({option:})
-      const queryType = request.params.queryType
-      const params = {
+      let params = {
         public: true
       }
-      if(queryType === "Username"){
-        params[userName] = request.params.query
+      // bring in params here to structure the options and pass into Soundslip.find({option:})
+      if(!request.params.queryType){
       }else{
-        params[title] = request.params.query
+        const queryType = request.params.queryType
+        if(queryType === "Username"){
+          params[userName] = request.params.query
+        }else{
+          params[title] = request.params.query
+        }
       }
       const soundslips = await Soundslip.find(params)
         // .populate('user')
