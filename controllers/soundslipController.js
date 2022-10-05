@@ -17,8 +17,18 @@ module.exports = {
   getPubSoundslips: async (request, response) => {
     try{
       // bring in params here to structure the options and pass into Soundslip.find({option:})
-      const soundslips = await Soundslip.find({ public: true })
+      const queryType = request.params.queryType
+      const params = {
+        public: true
+      }
+      if(queryType === "Username"){
+        params[userName] = request.params.query
+      }else{
+        params[title] = request.params.query
+      }
+      const soundslips = await Soundslip.find(params)
         // .populate('user')
+//--->> This section needs tweaking for pagination
         .sort({createdAt: 'desc'})
         .lean()
       response.status(200).send(soundslips)
