@@ -16,20 +16,27 @@ module.exports = {
   // All public soundslips in the db, pass in search params like instrument/genre/date/etc
   getPubSoundslips: async (request, response) => {
     try{
-      let params = {
+      let search = {
         public: true
       }
-      // bring in params here to structure the options and pass into Soundslip.find({option:})
-      if(!request.params.queryType){
+      if(!request.query.queryType){
       }else{
-        const queryType = request.params.queryType
-        if(queryType === "Username"){
-          params[userName] = request.params.query
+        if(request.query.queryType === "Username"){
+          search["userName"] = request.query.query
         }else{
-          params[title] = request.params.query
+          if(request.query.query.includes(" ")){
+            search["$and"] = []
+            let split = request.query.query.split(" ")
+            for(let word = 0; word < split.length; word++){
+              // new RegExp(param1, $options:'i')
+              search["$and"].push({"title": {'$regex': String(split[word]), $options: "i"}})
+            }
+          }else{
+            search["title"] = {$regex: String(request.query.query), $options: "i"}
+          }
         }
       }
-      const soundslips = await Soundslip.find(params)
+      const soundslips = await Soundslip.find(search)
         // .populate('user')
 //--->> This section needs tweaking for pagination
         .sort({createdAt: 'desc'})
