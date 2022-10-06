@@ -84,20 +84,6 @@ module.exports = {
                 ResponseContentType: 'audio/mpeg'
             };
             const url = await s3.getSignedUrl('getObject', s3Params)
-                    // successful response
-                    /*
-                    data = {
-                    AcceptRanges: "bytes", 
-                    ContentLength: 3191, 
-                    ContentType: "image/jpeg", 
-                    ETag: "\"6805f2cfc46c0f04559748bb039d69ae\"", 
-                    LastModified: <Date Representation>, 
-                    Metadata: {
-                    }, 
-                    TagCount: 2, 
-                    VersionId: "null"
-                    }
-                    */
             response.status(200).send(url)
         } catch (err) {
             console.error(err)
@@ -105,15 +91,31 @@ module.exports = {
         }
     },
     // For requesting a presign URL for the audio player
-    getPreSignedAudio: async (operation, params, callback) => {
+    getDownload: async (request, response) => {
         try{
-            var params = {
-                Bucket: 'bucket', 
-                Key: 'key'
-            };
-            var url = s3.getSignedUrl('getObject', params);
+            const soundslip = await Soundslip.findById(request.params.slipId)
+                .populate('userId')
+                .lean()
+            if (!soundslip) {
+                response.status(404).json({ mssg: "not found" })
+            }
+            else if (soundslip.userId != request.body.userId && soundslip.status == 'private') {
+                response.status(404).json({ mssg: "unable to access" })
+            } 
+            else{
+                var s3Params = {
+                    Bucket: "soundslip",
+                    Key: soundslip.fileKey,
+                    Expires: 300, 
+                    ResponseContentType: 'audio/mpeg',
+                    ResponseContentDisposition: 'attachment'
+                };
+                var url = await s3.getSignedUrl('getObject', s3Params);
+                response.send(url)
+            }
         }catch(err){
             console.log(err)
+            response.send({mssg: `error occurred requesting a download url`})
         }
     }
 }

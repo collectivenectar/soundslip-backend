@@ -47,7 +47,7 @@ module.exports = {
       response.status(500).json({mssg: "no soundslips found", error: err})
     }
   },
-  // Find all public status soundslips for a specific user.
+  // Find all public status soundslips for a specific user. i.e. profile page
   getPubSoundslipsByUser: async (request, response) => {
     try{
       const soundslips = await Soundslip.find({
