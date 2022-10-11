@@ -15,27 +15,66 @@ module.exports = {
   },
   // All public soundslips in the db, pass in search params like instrument/genre/date/etc
   getPubSoundslips: async (request, response) => {
+    // Add logic here for tags? It needs to fit max 2 different types of data as options:
+    //  1) userName / Title
+    //  2) tags - "drums" or "synth" or "other"
     try{
       let search = {
-        public: true
+        $and:[
+          {
+            public: true
+          },
+        ]
       }
-      if(!request.query.queryType){
-      }else{
-        if(request.query.queryType === "Username"){
-          search["userName"] = request.query.query
-        }else{
-          if(request.query.query.includes(" ")){
-            search["$and"] = []
-            let split = request.query.query.split(" ")
-            for(let word = 0; word < split.length; word++){
-              // new RegExp(param1, $options:'i')
-              search["$and"].push({"title": {'$regex': String(split[word]), $options: "i"}})
-            }
-          }else{
-            search["title"] = {$regex: String(request.query.query), $options: "i"}
+      if(request.query.filters.length > 0){
+        if(filtersArray.length > 1){
+          let filtersArray = []
+          for(let eachFilter = 0; eachFilter < request.query.filters.length; eachFilter++){
+            filtersArray.push({"tag": `${request.query.filters[eachFilter]}`})
           }
+          search.$and.push({$or: filtersArray})
+        }else{
+          search.$and.push({"tag": request.query.filters[0]})
         }
       }
+      if(request.query.queryType === "Username"){
+        search.$and.push({userName: {'$regex': String(request.query.query), $options: "i"}})
+      }else if(request.query.queryType === "Title"){
+        let titleSearch = request.query.query
+        if(titleSearch.split(" ").length > 1){
+          for(let eachWord = 0; eachWord < titleSearch.split(" ").length; eachWord++){
+            search.$and.push({"title": {'$regex': String(titleSearch[eachWord]), $options: "i"}})
+          }
+        }else{
+          search.$and.push({"title": {'$regex': String(titleSearch), $options: "i"}})
+        }
+      }
+      // request object has request.query which contains : 
+      //    query:, queryType:, filters:
+      // query is a string that gets split by (" "), queryType is either userName / title
+      // filters is an array with string elements as tags
+      // let search = {
+      //   public: true
+      // }
+      // if(!request.query.queryType){
+      // }else{
+      //   if(request.query.queryType === "Username"){
+      //     search["userName"] = request.query.query
+      //   }else{
+      //     if(request.query.query.includes(" ")){
+      //       search["$and"] = []
+      //       let split = request.query.query.split(" ")
+      //       for(let word = 0; word < split.length; word++){
+      //         // new RegExp(param1, $options:'i')
+      //         search["$and"].push({"title": {'$regex': String(split[word]), $options: "i"}})
+      //       }
+      //     }else{
+      //       search["title"] = {$regex: String(request.query.query), $options: "i"}
+      //     }
+      //   }
+      // }
+      // If the incoming request has filters? How should I rewrite multiple options gates?
+      // if(request.query.filters)
       const soundslips = await Soundslip.find(search)
         // .populate('user')
 //--->> This section needs tweaking for pagination
@@ -51,7 +90,7 @@ module.exports = {
   getPubSoundslipsByUser: async (request, response) => {
     try{
       const soundslips = await Soundslip.find({
-        user: request.params.username,
+        userName: request.params.username,
         public: true
       })
         .populate('username')

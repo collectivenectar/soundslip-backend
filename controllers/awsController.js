@@ -31,7 +31,7 @@ module.exports = {
             })
         }catch(err){
             console.error(err)
-            response.status(500).json({mssg: "unable to create"})
+            response.status(500).send({mssg: "unable to create"})
         }
     },
     // CHANGING DB - DELETING soundslip permanently, on success db is changed.
@@ -42,26 +42,29 @@ module.exports = {
                 response.status(404).send({mssg: "unable to find soundslip by that ID"})
             }else{
                 // add if logic here to check the user ID matches request user ID.
-        
-                var params = {
-                    Bucket: "soundslip", 
-                    Key: soundslip.fileKey
-                };
-                s3.deleteObject(params, function(err, data) {
-                    if (err){
-                        console.log(err, err.stack); // an error occurred
-                    } else{
-                        Soundslip.deleteOne({_id: request.params.id})
-                            .then(response.status(200).send({mssg: "successfully deleted soundslip"}))
-                            .catch(err => {
-                                console.error(err)
-                            })
-                    }
-                })
+                if(soundslip.userId === request.query.userId){
+                    var params = {
+                        Bucket: "soundslip", 
+                        Key: soundslip.fileKey
+                    };
+                    s3.deleteObject(params, function(err, data) {
+                        if (err){
+                            console.log(err, err.stack); // an error occurred
+                        } else{
+                            Soundslip.deleteOne({_id: request.params.id})
+                                .then(response.status(200).send({mssg: "successfully deleted soundslip"}))
+                                .catch(err => {
+                                    console.error(err)
+                                })
+                        }
+                    })
+                }else{
+                    response.status(500).send({mssg: "not your soundslip to delete"})
+                }
             }
         } catch(err){
             console.error(err)
-            response.status(500).json({mssg: "error"})
+            response.status(500).send({mssg: "error"})
         }
     },
     getSoundslipById: async (request, response) => {
@@ -70,10 +73,10 @@ module.exports = {
                 .populate('userId')
                 .lean()
             if (!soundslip) {
-                response.status(404).json({ mssg: "not found" })
+                response.status(404).send({ mssg: "not found" })
             }
             else if (soundslip.userId != request.query.id && soundslip.status == 'private') {
-                response.status(404).json({ mssg: "unable to access" })
+                response.status(404).send({ mssg: "unable to access" })
             } 
             // request a copy of the object in AWS
             // returns AWS.Request
@@ -97,11 +100,11 @@ module.exports = {
                 .populate('userId')
                 .lean()
             if (!soundslip) {
-                response.status(404).json({ mssg: "not found" })
+                response.status(404).send({ mssg: "not found" })
             }
             else if (soundslip.userId != request.body.userId && soundslip.status == 'private') {
-                response.status(404).json({ mssg: "unable to access" })
-            } 
+                response.status(404).send({ mssg: "unable to access" })
+            }   
             else{
                 var s3Params = {
                     Bucket: "soundslip",
