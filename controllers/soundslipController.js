@@ -20,33 +20,37 @@ module.exports = {
     //  2) tags - "drums" or "synth" or "other"
     try{
       let search = {
-        $and:[
+        "$and":[
           {
             public: true
           },
         ]
       }
-      if(request.query.filters.length > 0){
-        if(filtersArray.length > 1){
+      if(request.query.filters && request.query.filters.length > 0){
+        if(request.query.filters.includes(",")){
           let filtersArray = []
-          for(let eachFilter = 0; eachFilter < request.query.filters.length; eachFilter++){
-            filtersArray.push({"tag": `${request.query.filters[eachFilter]}`})
+          let requestFilters = request.query.filters.split(",")
+          for(let eachFilter = 0; eachFilter < requestFilters.length; eachFilter++){
+            filtersArray.push({"tag": `${requestFilters[eachFilter]}`})
           }
-          search.$and.push({$or: filtersArray})
+          search["$or"] = filtersArray
         }else{
-          search.$and.push({"tag": request.query.filters[0]})
+          search["$and"].push({"tag": request.query.filters})
         }
       }
-      if(request.query.queryType === "Username"){
-        search.$and.push({userName: {'$regex': String(request.query.query), $options: "i"}})
+      if(!request.query.queryType){
+
+      }
+      else if(request.query.queryType === "Username"){
+        search["$and"].push({userName: {'$regex': String(request.query.query), $options: "i"}})
       }else if(request.query.queryType === "Title"){
-        let titleSearch = request.query.query
+        let titleSearch = request.query.query.trim()
         if(titleSearch.split(" ").length > 1){
           for(let eachWord = 0; eachWord < titleSearch.split(" ").length; eachWord++){
-            search.$and.push({"title": {'$regex': String(titleSearch[eachWord]), $options: "i"}})
+            search["$and"].push({"title": {'$regex': String(titleSearch[eachWord]), $options: "i"}})
           }
         }else{
-          search.$and.push({"title": {'$regex': String(titleSearch), $options: "i"}})
+          search["$and"].push({"title": {'$regex': String(titleSearch), $options: "i"}})
         }
       }
       // request object has request.query which contains : 
@@ -75,6 +79,7 @@ module.exports = {
       // }
       // If the incoming request has filters? How should I rewrite multiple options gates?
       // if(request.query.filters)
+      // console.log(search, request.query, search["$or"])
       const soundslips = await Soundslip.find(search)
         // .populate('user')
 //--->> This section needs tweaking for pagination
@@ -83,7 +88,7 @@ module.exports = {
       response.status(200).send(soundslips)
     }catch (err){
       console.error(err)
-      response.status(500).json({mssg: "no soundslips found", error: err})
+      response.status(500).send({mssg: "no soundslips found", error: err})
     }
   },
   // Find all public status soundslips for a specific user. i.e. profile page
