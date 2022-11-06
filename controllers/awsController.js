@@ -42,7 +42,7 @@ module.exports = {
                 response.status(404).send({mssg: "unable to find soundslip by that ID"})
             }else{
                 // add if logic here to check the user ID matches request user ID.
-                if(soundslip.userId === request.query.userId){
+                if(soundslip.userId === request.body.userId){
                     var params = {
                         Bucket: "soundslip", 
                         Key: soundslip.fileKey
