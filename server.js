@@ -22,7 +22,7 @@ connectDB()
 // Middleware
 app.use(express.urlencoded({extended: false}))
 app.use(express.json())
-app.use(cors({credentials: true, origin: 'https://soundslip-frontend.herokuapp.com'}))
+app.use(cors({credentials: true, origin: '*'}))
 app.use(bodyParser())
 
 // Routes
