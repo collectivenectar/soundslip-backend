@@ -2,6 +2,9 @@ const Soundslip = require('../models/Soundslip')
 const aws = require('aws-sdk')
 const {upload} = require('../middleware/multer')
 
+// TODO: This needs to be seriously updated within 2 weeks, trying out render, maybe cloudinary.
+// bucket storage likely needs to be switched to something like infura
+
 const s3 = new aws.S3()
 
 aws.config.update({
@@ -31,7 +34,7 @@ module.exports = {
             })
         }catch(err){
             console.error(err)
-            response.status(500).send({mssg: `unable to create, ${err}`})
+            response.status(500).send({mssg: "unable to create"})
         }
     },
     // PRIVATE PROFILE - DELETING soundslip permanently, on success db is changed.
@@ -42,7 +45,7 @@ module.exports = {
                 response.status(404).send({mssg: "unable to find soundslip by that ID"})
             }else{
                 // add if logic here to check the user ID matches request user ID.
-                if(soundslip.userId === request.body.userId){
+                if(soundslip.userId === request.query.userId){
                     var params = {
                         Bucket: "soundslip", 
                         Key: soundslip.fileKey

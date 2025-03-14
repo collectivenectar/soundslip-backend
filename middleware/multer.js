@@ -1,11 +1,14 @@
 const multer = require('multer')
 const multerS3 = require('multer-s3-v2')
 
+// Multer opens up the option of multiple samples being uploaded at the same time
+// which would be great for sample packs and the like. But, s3 is likely to be
+// phased out for the next round, so it will all be likely gone.
+
 const aws = require('aws-sdk')
 const s3 = new aws.S3()
 
 const mimetypes = ["audio/mpeg"] // + , "audio/vnd.wav", "audio/x-aiff"
-const fileSizeLimit = 2097152
 
 aws.config.update({
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
@@ -17,7 +20,7 @@ const fileFilter = (req, file, cb) => {
   if(mimetypes.includes(file.mimetype)){
     cb(null, true);
   }else{
-    cb(new Error("Invalid file type, only MP3 for now"))
+    cb(new Error("Invalid file type, only MP3"))
   }
 }
 
@@ -33,11 +36,7 @@ const upload = multer({
     key: function(request, file, cb) {
       cb(null, Date.now().toString());
     }
-  }),
-  limits: {
-    fileSize: fileSizeLimit,
-    files: 1
-  }
+  })
 })
 
 module.exports = { upload }
